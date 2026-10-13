@@ -117,15 +117,30 @@ A source whose `visualOf` entry is missing is unresolved: it is never counted as
           encounterID = n,
           relevant = true,              -- at least one eligible missing or unresolved appearance
           killed = false,               -- from lockouts, independent of relevance
-          opportunity = "sure",         -- "sure" (any group source missing), "roll", or nil
+          opportunity = "sure",         -- "sure" (any group source missing), "roll", "unknown", or nil
           missing = {
-            { sourceID = n, itemID = n, classes = { "PRIEST" }, collectionRule = "group", unresolved = false },
+            { sourceID = n, itemID = n, classes = { "PRIEST" }, collectionRule = "group", unresolved = false,
+              levelLocked = false },
           },
         },
       },
       trash = { missing = { ... } },
+      other = { missing = { ... } },    -- sources not tied to a listed boss or to trash
     },
   },
   current = n | nil,                    -- instanceID from instanceContext when it is a known, non-assumed instance
 }
 ```
+
+### Evaluator rules
+
+- **Eligibility.** A source counts for a profile class when `proficiency.CanCollect(classFile, source)` allows it, the source's `classes` (if any) include the class ID, and its `faction` is nil or equals `character.faction`. A faction mismatch drops the source for every class.
+- **Unresolved.** A source is unresolved when its `visualOf` entry is missing, its `itemSubType` is nil, or `CanCollect` returns nil (a subtype or class the rule does not know). It is never counted as owned, in either ownership mode, and it keeps its boss relevant. It is still listed for the classes its `classes` restriction allows.
+- **Ownership.** `"appearance"`: owned when its visual is in `ownedVisuals`. `"exact"`: owned when `ownedSources[sourceID]`.
+- **Missing entries.** Each missing source appears once. `classes` lists the eligible profile classes in profile order. `levelLocked` is true when `character.level < minLevel`; the entry stays listed.
+- **Placement.** `kind = "boss"` with an `encounterID` the instance lists goes under that encounter. `"trash"` goes in `trash`. Everything else in scope goes in `other`: `"unresolved"`, `"token"` (tokens are an open question), and boss drops whose encounter is nil or not in the instance's `encounters`. `"quest"` and `"vendor"` sources are ignored in the first release.
+- **Opportunity.** `"sure"` if any listed missing source has rule `"group"`, else `"roll"` for `"recipient"`, else `"unknown"`, else nil. A nil rule counts as `"unknown"`.
+- **Progress.** Per profile class, over every eligible source in the instance (bosses, trash and `other`). Appearance mode counts distinct visuals; exact mode counts sources; an unresolved source always counts as one unit and is never owned. One class's progress never depends on which other classes are selected.
+- **Filters.** `profile.instances` removes instances from the output. `profile.slots` limits listed missing entries, so it also drives `relevant` and `opportunity`, but it does not change `progress`. `profile.instanceKinds` only sets `active`; nil means every kind. `active` is false for assumed instances, which are still listed.
+- **Current.** `current` is set from `instanceContext` regardless of the filters.
+- **Order.** Instances by ID, encounters in the instance's `encounters` order, missing entries by source ID.
