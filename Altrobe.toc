@@ -6,3 +6,4 @@
 ## SavedVariables: AltrobeDB
 
 Core.lua
+Data/ClassProficiency.lua
