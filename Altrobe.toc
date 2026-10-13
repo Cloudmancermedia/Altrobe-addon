@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: Altrobe
+## Notes: Shows which dungeon and raid bosses still drop appearances you're missing.
+## Author: Ryan Williams
+## Version: 0.1.0-dev
+## SavedVariables: AltrobeDB
+
+Core.lua
