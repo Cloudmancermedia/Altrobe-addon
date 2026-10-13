@@ -1,9 +1,9 @@
 -- Loads an All The Things category file (generated Lua) into a plain node tree.
 --
--- The file is untrusted data. It runs in an empty environment: no io, os,
--- require, load*, debug or string library. The only thing it can reach is the
--- app table `_`, whose constructors build nodes and whose other fields are an
--- inert placeholder. Precompiled bytecode is refused, and an instruction limit
+-- The file is untrusted data. Its environment holds only the app table `_`:
+-- no io, os, require, load*, debug or string library. The app's constructors
+-- build nodes, assignments to it are kept, and its other fields are an inert
+-- placeholder. Precompiled bytecode is refused, and an instruction limit
 -- stops a file that never finishes.
 --
 -- Node shape: { type = "inst"|"e"|"h"|"s"|"i"|"q"|..., id = n, itemID = n (s only),
@@ -95,22 +95,24 @@ local function withLimit(fn, ...)
   return unpack(results, 2)
 end
 
--- Loads source text and returns the categories table the file fills.
+-- Loads source text. Returns the categories table the file fills, and the app
+-- table, which holds anything the file assigned to `_` (e.g. `_.ItemDB`).
 function M.loadString(text, chunkName)
   if text:byte(1) == 27 then error(chunkName .. ": refusing precompiled bytecode", 0) end
   local chunk, err = loadstring(text, "=" .. chunkName)
   if not chunk then error(err, 0) end
-  setfenv(chunk, {})
-
   local handlers = {}
   local categories = {}
+  local app = newApp(handlers)
+  -- Category files receive the app as `...`; export files use a global `_`.
+  setfenv(chunk, { _ = app })
   withLimit(function()
-    chunk("AllTheThings", newApp(handlers))
+    chunk("AllTheThings", app)
     for _, h in ipairs(handlers) do
       if h.event == "OnBuildDataCache" then h.fn(categories) end
     end
   end)
-  return categories
+  return categories, app
 end
 
 function M.loadFile(path)
