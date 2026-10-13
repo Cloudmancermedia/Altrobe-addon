@@ -39,8 +39,17 @@ describe("Proficiency", function()
 
   it("returns nil when the rule cannot decide", function()
     assert.is_nil(P.CanCollect("PRIEST", src("armor", nil)))
-    assert.is_nil(P.CanCollect("PRIEST", src("armor", "SHIELD")))
+    assert.is_nil(P.CanCollect("PRIEST", src("armor", "TOTEM")))
     assert.is_nil(P.CanCollect("DEATHKNIGHT", src("armor", "PLATE")))
+  end)
+
+  it("lets only shield users collect shields", function()
+    for _, class in ipairs({ "WARRIOR", "PALADIN", "SHAMAN" }) do
+      assert.is_true(P.CanCollect(class, src("armor", "SHIELD")), class)
+    end
+    for _, class in ipairs({ "PRIEST", "ROGUE", "HUNTER", "MAGE", "WARLOCK", "DRUID" }) do
+      assert.is_false(P.CanCollect(class, src("armor", "SHIELD")), class)
+    end
   end)
 
   it("maps every class file to its class ID", function()

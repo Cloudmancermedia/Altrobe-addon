@@ -79,20 +79,22 @@ function Evaluator.Evaluate(input)
       and (source.faction == nil or source.faction == character.faction) then
       local eligible, undecided = eligibleClasses(source, classes, proficiency)
       if #eligible > 0 then
+        -- Ownership is checked first: an owned appearance is never sent to
+        -- farm, even when its data is incomplete. Unresolved only matters for
+        -- what is still missing, where it keeps the boss relevant.
         local visual = visualOf[sourceID]
-        local unresolved = undecided or visual == nil or source.itemSubType == nil
         local owned
-        if unresolved then
-          owned = false
-        elseif exact then
+        if exact then
           owned = ownedSources[sourceID] == true
         else
-          owned = ownedVisuals[visual] == true
+          owned = visual ~= nil and ownedVisuals[visual] == true
         end
+        local unresolved = not owned
+          and (undecided or source.itemSubType == nil or (not exact and visual == nil))
 
-        -- Progress units: a source in exact mode, a visual in appearance
-        -- mode, and always a source when unresolved.
-        local unit = (exact or unresolved) and ("s" .. sourceID) or ("v" .. visual)
+        -- Progress units: a source in exact mode or when the visual is
+        -- unknown, otherwise the visual.
+        local unit = (exact or visual == nil) and ("s" .. sourceID) or ("v" .. visual)
         for _, classFile in ipairs(eligible) do
           local units = state.units[classFile]
           if not units then

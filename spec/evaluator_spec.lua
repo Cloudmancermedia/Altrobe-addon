@@ -197,6 +197,18 @@ describe("Evaluator", function()
       assert.is_true(e.unresolved)
       assert.are.same({ owned = 1, total = 6 }, instance(out, 100).progress.PRIEST)
     end)
+
+    it("counts an exactly owned source as owned even without a visual", function()
+      visualOf[5001] = nil
+      local out = evaluate({ ownership = "exact", ownedSources = { [5001] = true } })
+      assert.is_nil(entry(encounter(out, 100, 1001).missing, 5001))
+    end)
+
+    it("counts an owned visual as owned even when the subtype is missing", function()
+      data.sources[5001].itemSubType = nil
+      local out = evaluate({ ownedVisuals = { [900] = true } })
+      assert.is_nil(entry(encounter(out, 100, 1001).missing, 5001))
+    end)
   end)
 
   it("lists a level-locked drop and flags it", function()

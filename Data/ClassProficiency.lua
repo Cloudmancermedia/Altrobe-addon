@@ -67,18 +67,25 @@ P.ArmorType = {
 -- shirts, tabards, off-hand frills) is collectable by every class.
 local armorTypes = set({ "CLOTH", "LEATHER", "MAIL", "PLATE", "GENERIC" })
 
+-- Classes that can equip shields, from the Classic Era baseline. UNVERIFIED
+-- for Forever, like ClassicWeapons above.
+P.ShieldUsers = set({ "WARRIOR", "PALADIN", "SHAMAN" })
+
 local weaponTypes = {}
 for _, weapons in pairs(P.Weapons) do
   for key in pairs(weapons) do weaponTypes[key] = true end
 end
 
 -- Returns true or false when the rule decides, and nil when it cannot: an
--- unknown class, a nil subtype, or a subtype it does not know (shields among
--- them). The evaluator treats nil as unresolved, never as a skip.
+-- unknown class, a nil subtype, or a subtype it does not know. The evaluator
+-- treats nil as unresolved, never as a skip.
 function P.CanCollect(classFile, source)
   local primary = P.ArmorType[classFile]
   local subType = source.itemSubType
   if not primary or subType == nil then return nil end
+  if subType == "SHIELD" then
+    return P.ShieldUsers[classFile] == true
+  end
   if armorTypes[subType] then
     return subType == "GENERIC" or subType == primary
   end
