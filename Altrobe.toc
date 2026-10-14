@@ -6,3 +6,16 @@
 ## SavedVariables: AltrobeDB
 
 Core.lua
+Data\Generated\Manifest.lua
+Data\Generated\Instances.lua
+Data\Generated\Encounters.lua
+Data\Generated\Sources.lua
+Data\Generated\Tokens.lua
+Data\ClassProficiency.lua
+Domain\Evaluator.lua
+Services\Profile.lua
+Services\Collection.lua
+Services\InstanceContext.lua
+Services\Lockouts.lua
+Services\Plan.lua
+UI\ChatPlan.lua

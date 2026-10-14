@@ -1,0 +1,6 @@
+ID,Display_lang,OverallQualityID,ExpansionID,MinFactionID,MinReputation,AllowableClass,RequiredLevel
+1001,"Robe, of Tests",2,0,0,0,-1,15
+1004,"Test Shield",4,0,0,0,-1,0
+1007,"Test Ring",2,0,0,0,1503,1
+2002,"Conflicted Pole",2,0,0,0,-1,0
+3001,"Felheart Gloves",4,0,0,0,256,60

@@ -1,6 +1,6 @@
 std = "lua51"
 max_line_length = 120
-exclude_files = { ".claude/", "dist/", "Data/Generated/" }
+exclude_files = { ".claude/", "dist/", "Data/Generated/", "spec/pipeline/fixtures/" }
 
 globals = {
   "SLASH_ALTROBE1", "SlashCmdList", "AltrobeDB",
@@ -9,7 +9,7 @@ globals = {
 read_globals = {
   "CreateFrame", "C_TransmogCollection", "C_Item", "C_Map", "GetInstanceInfo", "GetSavedInstanceInfo",
   "GetNumSavedInstances", "GetSavedInstanceEncounterInfo", "UnitClass", "UnitLevel", "UnitFactionGroup",
-  "C_Timer", "InCombatLockdown",
+  "C_Timer", "InCombatLockdown", "RequestRaidInfo",
 }
 
 files["spec/"] = {
