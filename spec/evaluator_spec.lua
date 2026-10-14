@@ -43,6 +43,7 @@ describe("Evaluator", function()
         ownedSources = opts.ownedSources or {},
       },
       character = opts.character or { classFile = "PRIEST", level = 60, faction = "Horde" },
+      itemFacts = opts.itemFacts,
       instanceContext = opts.instanceContext,
       lockouts = opts.lockouts or {},
     })
@@ -257,6 +258,50 @@ describe("Evaluator", function()
       assert.is_false(encounter(out, 100, 1003).relevant)
       assert.are.same({}, ids(instance(out, 100).trash.missing))
       assert.are.same(instance(all, 100).progress, instance(out, 100).progress)
+    end)
+  end)
+
+  describe("runtime rule from item facts", function()
+    local function rule(out, instanceID, encounterID, sourceID)
+      return entry(encounter(out, instanceID, encounterID).missing, sourceID).collectionRule
+    end
+
+    it("makes a bind-on-pickup dungeon drop of quality 2 or 3 a group drop", function()
+      data.sources[5001].collectionRule = "unknown"
+      data.sources[5004].collectionRule = "unknown"
+      local out = evaluate({ classes = { "PRIEST", "ROGUE" }, itemFacts = {
+        [15001] = { quality = 3, bindType = 1 }, [15004] = { quality = 2, bindType = 1 },
+      } })
+      assert.are.equal("group", rule(out, 100, 1001, 5001))
+      assert.are.equal("group", rule(out, 100, 1002, 5004))
+      assert.are.equal("sure", encounter(out, 100, 1001).opportunity)
+    end)
+
+    it("makes an epic dungeon drop a recipient drop", function()
+      data.sources[5001].collectionRule = "unknown"
+      local out = evaluate({ itemFacts = { [15001] = { quality = 4, bindType = 1 } } })
+      assert.are.equal("recipient", rule(out, 100, 1001, 5001))
+    end)
+
+    it("makes any raid drop with a known quality a recipient drop", function()
+      data.sources[6001].collectionRule = "unknown"
+      local out = evaluate({ itemFacts = { [data.sources[6001].itemID] = { quality = 2, bindType = 2 } } })
+      assert.are.equal("recipient", rule(out, 200, 2001, 6001))
+    end)
+
+    it("leaves the rule unknown without a quality or for a dungeon drop that is not bind on pickup", function()
+      data.sources[5001].collectionRule = "unknown"
+      data.sources[5004].collectionRule = "unknown"
+      local out = evaluate({ classes = { "PRIEST" }, itemFacts = {
+        [15001] = { bindType = 1 }, [15004] = { quality = 3, bindType = 2 },
+      } })
+      assert.are.equal("unknown", rule(out, 100, 1001, 5001))
+      assert.are.equal("unknown", rule(out, 100, 1002, 5004))
+    end)
+
+    it("never overrides a rule from the data", function()
+      local out = evaluate({ itemFacts = { [15001] = { quality = 4, bindType = 1 } } })
+      assert.are.equal("group", rule(out, 100, 1001, 5001))
     end)
   end)
 
