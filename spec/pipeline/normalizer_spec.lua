@@ -66,6 +66,11 @@ describe("normalizer", function()
       assert.is_nil(data.sources[109])
       assert.are.equal(3, data.stats.excludedByTimeline)
     end)
+
+    it("keeps a source removed in a later patch and re-added after that", function()
+      -- Upstream writes "removed in 2.0.1, back in 10.1.7" as awp=100107, rwp=20001.
+      assert.are.equal("boss", data.sources[110].kind)
+    end)
   end)
 
   describe("duplicates", function()

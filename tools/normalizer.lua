@@ -7,7 +7,8 @@
 --
 -- Timeline: a subtree is dropped when upstream marks it never implemented or
 -- removed (u=1, u=2), added after the target build (awp > timeline) or removed
--- at or before it (rwp <= timeline). Timeline numbers encode a patch as
+-- at or before it (rwp <= timeline). awp > rwp means removed at rwp and re-added
+-- at awp, so the subtree is dropped only between the two. Timeline numbers encode a patch as
 -- major*10000 + minor*100 + patch, so 1.60.1 is 16001.
 local iteminfo = require("tools.iteminfo")
 
@@ -41,8 +42,14 @@ end
 
 local function excludedByTimeline(fields, timeline)
   if fields.u == 1 or fields.u == 2 then return true end
-  if type(fields.awp) == "number" and fields.awp > timeline then return true end
-  if type(fields.rwp) == "number" and fields.rwp <= timeline then return true end
+  local awp = type(fields.awp) == "number" and fields.awp or nil
+  local rwp = type(fields.rwp) == "number" and fields.rwp or nil
+  if awp and rwp and awp > rwp then
+    -- Removed at rwp and re-added at awp: available before rwp or from awp on.
+    return timeline >= rwp and timeline < awp
+  end
+  if awp and awp > timeline then return true end
+  if rwp and rwp <= timeline then return true end
   return false
 end
 
