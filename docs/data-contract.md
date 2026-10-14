@@ -48,7 +48,7 @@ ns.Data.instances = { ... }
 |---|---|---|
 | `id` | number | Journal encounter ID, or `-npcID` for a boss upstream records only as an NPC |
 | `instanceID` | number | Owning instance |
-| `name` | string \| nil | Boss name from the best pinned upstream source. Used for display and to match lockouts, which the client reports by name |
+| `name` | string \| nil | Boss name from the best pinned upstream source. Used for display and to match lockouts, which the client reports by name. English. The pinned checkout has no journal encounter or creature table, so names come from the comments in upstream's source files (`tools/names.lua`); nil when upstream gives none or gives alternatives the client does not settle |
 | `npcID` | number \| nil | |
 | `journal` | boolean | false for `-npcID` bosses |
 

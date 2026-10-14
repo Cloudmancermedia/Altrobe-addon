@@ -1,0 +1,4 @@
+ID,Description_lang,Parent,Amount,Operator,CriteriaID,OrderIndex,Flags
+50,"Defeat Onyxia.",0,1,8,0,0,0
+51,"Onyxia",50,1,0,900,0,2
+52,"Onyxia the Broodmother",50,1,0,901,1,2

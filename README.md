@@ -27,12 +27,13 @@ luarocks --lua-version=5.1 --local install luacheck
 
 ### Data pipeline
 
-`make data` needs a checkout of All The Things at the commit pinned in `tools/build_data.lua`, and refuses any other. A sparse clone of `db/Camelot/`, `db/Vanilla/` and `.contrib/.db/forever/.config/` is enough. Upstream files are treated as data: they load in a sandbox with no library access, and nothing upstream is run.
+`make data` needs a checkout of All The Things at the commit pinned in `tools/build_data.lua`, and refuses any other. A sparse clone of `db/Camelot/`, `db/Vanilla/`, `.contrib/.db/forever/.config/`, `.contrib/.db/forever/dungeons & raids/` and `.contrib/.db/standard/01 - Dungeons Raids/01 - Classic/` is enough. Upstream files are treated as data: they load in a sandbox with no library access, and nothing upstream is run.
 
 | Module | Job |
 |---|---|
 | `tools/loader.lua` | Loads an upstream category file into a node tree |
 | `tools/iteminfo.lua` | Quality, slot and type from the Forever client tables (Wago CSVs, harvested ItemDB) |
+| `tools/names.lua` | Boss names from the comments in upstream's source files, settled against the client's kill criteria |
 | `tools/normalizer.lua` | Builds instances, encounters and sources; classifies sources, including NPC-only bosses; applies the timeline |
 | `tools/availability.lua` | Hand-maintained availability per instance, with provenance |
 | `tools/validator.lua` | Referential integrity and enum checks; the build writes nothing if they fail |

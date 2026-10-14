@@ -21,7 +21,10 @@
 -- at or before it (rwp <= timeline). awp > rwp means removed at rwp and re-added
 -- at awp, so the subtree is dropped only between the two. Timeline numbers encode a patch as
 -- major*10000 + minor*100 + patch, so 1.60.1 is 16001.
+-- Encounter names come from opts.names (tools/names.lua): journal encounters by
+-- encounter ID, NPC bosses by NPC ID. A missing name stays nil and is counted.
 local iteminfo = require("tools.iteminfo")
+local namesLib = require("tools.names")
 
 local M = {}
 
@@ -110,10 +113,11 @@ end
 
 function M.normalize(opts)
   local items, availability, timeline = opts.items, opts.availability, opts.timeline
+  local names = opts.names or { encounter = {}, npc = {}, killNames = {} }
   local out = { instances = {}, encounters = {}, sources = {}, instanceSources = {} }
   local stats = {
     outsideInstance = 0, excludedByTimeline = 0, duplicateSources = {}, appearanceMismatch = {},
-    qualityConflict = 0, byInstance = {},
+    qualityConflict = 0, byInstance = {}, unnamedEncounters = 0,
   }
   out.stats = stats
   local duplicateSeen, mismatchSeen = {}, {}
@@ -256,14 +260,20 @@ function M.normalize(opts)
       if n.type == "e" then
         c.kind, c.encounterID, c.npcBoss = "boss", n.id, nil
         if not out.encounters[n.id] then
-          out.encounters[n.id] = { id = n.id, instanceID = node.id, npcID = n.fields.npcID, journal = true }
+          out.encounters[n.id] = {
+            id = n.id, instanceID = node.id, npcID = n.fields.npcID, journal = true,
+            name = namesLib.pick(names, names.encounter[n.id], n.fields.npcID),
+          }
           inst.encounters[#inst.encounters + 1] = n.id
         end
       elseif n.type == "n" and ctx.bossLevel and not describedAsRare(n.fields) and dropsSources(n, timeline)
         and (out.encounters[-n.id] == nil or out.encounters[-n.id].instanceID == node.id) then
         c.kind, c.encounterID, c.npcID, c.npcBoss = "boss", -n.id, n.id, true
         if not out.encounters[-n.id] then
-          out.encounters[-n.id] = { id = -n.id, instanceID = node.id, npcID = n.id, journal = false }
+          out.encounters[-n.id] = {
+            id = -n.id, instanceID = node.id, npcID = n.id, journal = false,
+            name = namesLib.pick(names, names.npc[n.id], n.id),
+          }
           inst.encounters[#inst.encounters + 1] = -n.id
         end
       elseif n.type == "q" then
@@ -281,6 +291,9 @@ function M.normalize(opts)
     for _, child in ipairs(node.children) do walk(child, { bossLevel = true }) end
   end
 
+  for _, enc in pairs(out.encounters) do
+    if enc.name == nil then stats.unnamedEncounters = stats.unnamedEncounters + 1 end
+  end
   table.sort(stats.duplicateSources)
   table.sort(stats.appearanceMismatch)
   return out

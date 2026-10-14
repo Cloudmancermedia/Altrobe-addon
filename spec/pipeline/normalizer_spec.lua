@@ -1,6 +1,7 @@
 local loader = require("tools.loader")
 local iteminfo = require("tools.iteminfo")
 local normalizer = require("tools.normalizer")
+local names = require("tools.names")
 
 local ROOT = "spec/pipeline/fixtures/att"
 
@@ -17,6 +18,7 @@ local function build(availability)
     camelot = loader.loadFile(ROOT .. "/db/Camelot/Categories/Instances.lua").Instances,
     vanilla = loader.loadFile(ROOT .. "/db/Vanilla/Categories/Instances.lua").Instances,
     items = iteminfo.load(ROOT, "1.60.1.70338"),
+    names = names.load(ROOT, "1.60.1.70338"),
     availability = availability or AVAILABILITY,
     timeline = 16001,
   })
@@ -182,11 +184,30 @@ describe("normalizer", function()
     end)
 
     it("records encounters with their instance and NPC", function()
-      assert.are.same({ id = 3311, instanceID = 2959, npcID = 247126, journal = true }, data.encounters[3311])
+      assert.are.same({ id = 3311, instanceID = 2959, npcID = 247126, journal = true, name = "Archmage Test" },
+        data.encounters[3311])
     end)
 
     it("records an NPC boss as an encounter outside the journal", function()
-      assert.are.same({ id = -4887, instanceID = 2959, npcID = 4887, journal = false }, data.encounters[-4887])
+      assert.are.same({ id = -4887, instanceID = 2959, npcID = 4887, journal = false, name = "Ghamoo-ra" },
+        data.encounters[-4887])
+    end)
+
+    it("names NPC bosses from the NPC name and leaves unknown names nil", function()
+      assert.are.equal("Wing Boss", data.encounters[-5003].name)
+      assert.are.equal("Summoned Boss", data.encounters[-5004].name)
+      assert.is_nil(data.encounters[3310].name)
+      assert.is_nil(data.encounters[3312].name)
+    end)
+
+    it("settles a name with alternatives from the client's kill criteria", function()
+      assert.are.equal("Onyxia", data.encounters[1084].name)
+      assert.is_nil(data.encounters[1529].name)
+    end)
+
+    it("counts encounters left without a name", function()
+      -- 3310, 3312 (two names upstream), 1529 (alternatives) and Vanilla's 1519.
+      assert.are.equal(4, data.stats.unnamedEncounters)
     end)
   end)
 
