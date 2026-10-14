@@ -172,3 +172,13 @@ end
 function Collection.ItemLink(itemID)
   return links[itemID]
 end
+
+-- Loading state for one item, for diagnostics.
+function Collection.ItemState(itemID)
+  return {
+    hasFacts = facts[itemID] ~= nil,
+    hasLink = links[itemID] ~= nil,
+    pending = pending[itemID] == true,
+    queued = queued[itemID] == true,
+  }
+end
