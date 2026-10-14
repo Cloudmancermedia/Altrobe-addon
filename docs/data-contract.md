@@ -46,10 +46,13 @@ ns.Data.instances = { ... }
 
 | Field | Type | Meaning |
 |---|---|---|
-| `id` | number | Journal encounter ID |
+| `id` | number | Journal encounter ID, or `-npcID` for a boss upstream records only as an NPC |
 | `instanceID` | number | Owning instance |
-| `name` | string \| nil | |
+| `name` | string \| nil | Boss name from the best pinned upstream source. Used for display and to match lockouts, which the client reports by name |
 | `npcID` | number \| nil | |
+| `journal` | boolean | false for `-npcID` bosses |
+
+Upstream models most classic dungeon bosses as an NPC with no journal encounter. Those NPCs become encounters keyed by the negative NPC ID, listed in the instance's `encounters` in upstream order, and their drops are `kind = "boss"` sources with that `encounterID`.
 
 ### `ns.Data.sources[sourceID]`
 
@@ -72,7 +75,7 @@ One row per item modified-appearance source (`s(sourceID, itemID, ...)` upstream
 | `difficultyID` | number \| nil | nil while Forever has one difficulty |
 | `collectionRule` | `"group"` \| `"recipient"` \| `"unknown"` | `group`: dungeon bind-on-pickup quality 2 or 3. `recipient`: quality 4 or raid drops. `unknown` when quality is nil |
 | `name` | string \| nil | Only filled for items the client may not know (assumed instances) |
-| `npcID` | number \| nil | Optional. For `unresolved` sources that drop from an upstream NPC with no journal encounter, the NPC ID |
+| `npcID` | number \| nil | Optional. The NPC a source drops from, when upstream names one |
 | `alsoFrom` | table[] \| nil | Optional. Other places the same source drops, each `{ instanceID, encounterID, kind }`. The row's own fields are the first place upstream lists it |
 
 ### `ns.Data.tokens[itemID]`
@@ -99,6 +102,7 @@ ns.Evaluator.Evaluate({
     ownedVisuals = { [visualID] = true },
     ownedSources = { [sourceID] = true },
   },
+  itemFacts = { [itemID] = { quality = 3, bindType = 1 } },  -- from C_Item.GetItemInfo; may be partial
   character = { classFile = "PRIEST", level = 60, faction = "Horde" },
   instanceContext = nil,                    -- or { instanceID = n }
   lockouts = { [instanceID] = { killed = { [encounterID] = true } } },
@@ -142,6 +146,7 @@ Ownership is decided first. In appearance mode a source is owned when its visual
 - **Ownership.** `"appearance"`: owned when its visual is in `ownedVisuals`. `"exact"`: owned when `ownedSources[sourceID]`.
 - **Missing entries.** Each missing source appears once. `classes` lists the eligible profile classes in profile order. `levelLocked` is true when `character.level < minLevel`; the entry stays listed.
 - **Placement.** `kind = "boss"` with an `encounterID` the instance lists goes under that encounter. `"trash"` goes in `trash`. Everything else in scope goes in `other`: `"unresolved"`, `"token"` (tokens are an open question), and boss drops whose encounter is nil or not in the instance's `encounters`. `"quest"` and `"vendor"` sources are ignored in the first release.
+- **Runtime rule.** When a source's `collectionRule` is `"unknown"` and `itemFacts[itemID]` has a quality, the evaluator derives the rule the way the pipeline does: `"recipient"` for quality 4 or any raid source, `"group"` for a dungeon source of quality 2 or 3 with `bindType` 1 (bind on pickup), otherwise `"unknown"`. A rule from the data is never overridden.
 - **Opportunity.** `"sure"` if any listed missing source has rule `"group"`, else `"roll"` for `"recipient"`, else `"unknown"`, else nil. A nil rule counts as `"unknown"`.
 - **Progress.** Per profile class, over every eligible source in the instance (bosses, trash and `other`). Appearance mode counts distinct visuals; exact mode counts sources; a source with no known visual counts as one unit by source ID. One class's progress never depends on which other classes are selected.
 - **Filters.** `profile.instances` removes instances from the output. `profile.slots` limits listed missing entries, so it also drives `relevant` and `opportunity`, but it does not change `progress`. `profile.instanceKinds` only sets `active`; nil means every kind. `active` is false for assumed instances, which are still listed.
