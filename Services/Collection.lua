@@ -32,6 +32,9 @@ local stale = true
 
 local facts, links = {}, {}
 local queue, queued, pending = {}, {}, {}
+-- Items the client failed to load this session. In the level-capped beta most
+-- are higher-level items not in the client yet; re-checked next session.
+local absent = {}
 local pumping = false
 
 local function changed()
@@ -140,7 +143,7 @@ end
 -- read at once; the rest load in batches. Urgent items go to the front.
 function Collection.RequestItems(itemIDs, urgent)
   for _, itemID in ipairs(itemIDs) do
-    if not facts[itemID] and not pending[itemID] and not readItem(itemID) then
+    if not facts[itemID] and not pending[itemID] and not absent[itemID] and not readItem(itemID) then
       if urgent and queued[itemID] then
         for i, id in ipairs(queue) do
           if id == itemID then table.remove(queue, i) break end
@@ -162,11 +165,20 @@ end
 ns.On("GET_ITEM_INFO_RECEIVED", function(itemID, success)
   if not pending[itemID] then return end
   pending[itemID] = nil
-  if success and readItem(itemID) then changed() end
+  if success and readItem(itemID) then
+    changed()
+  elseif not success then
+    absent[itemID] = true
+    changed()
+  end
 end)
 
 function Collection.ItemFacts()
   return facts
+end
+
+function Collection.AbsentItems()
+  return absent
 end
 
 function Collection.ItemLink(itemID)

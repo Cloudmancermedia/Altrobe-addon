@@ -79,6 +79,9 @@ local function printInstance(plan, instanceID)
   if shown == 0 then print(INDENT .. "No boss here drops anything you're missing.") end
 
   print(("%sTrash: %d missing, Other: %d missing"):format(INDENT, #inst.trash.missing, #inst.other.missing))
+  if inst.notInClient > 0 then
+    print(("%s%d item%s not in the client yet"):format(INDENT, inst.notInClient, inst.notInClient == 1 and "" or "s"))
+  end
   if flagged then print(INDENT .. "? incomplete data, * above your level") end
   if loading then
     print(INDENT .. "Item names are loading. Run /altrobe plan again for links.")

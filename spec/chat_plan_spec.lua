@@ -33,6 +33,13 @@ describe("/altrobe plan", function()
     env.mapID = 1000
   end)
 
+  it("counts items the client does not have yet", function()
+    ns.Collection.RequestItems({ 15001 })
+    env.runTimers()
+    env.fire(ns, "GET_ITEM_INFO_RECEIVED", 15001, false)
+    assert.matches("1 item not in the client yet", plan())
+  end)
+
   it("lists the current instance's relevant bosses in order with opportunity and item count", function()
     local out = plan()
     assert.matches("Fixture Keep", out)
