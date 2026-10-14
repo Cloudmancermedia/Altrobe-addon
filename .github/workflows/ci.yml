@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # WoW addons run on Lua 5.1. The Makefile expects luacheck and busted in ~/.luarocks/bin.
-      # The host tools in tools/ use LuaJIT's global `bit`, which luabitop provides on plain 5.1.
+      # The host tools in tools/ use LuaJIT's global `bit`, which luabitop provides as a module on plain 5.1. LUA_INIT makes it global.
       - name: Install Lua 5.1 and LuaRocks
         run: sudo apt-get update && sudo apt-get install -y lua5.1 liblua5.1-0-dev luarocks
 
@@ -29,4 +29,5 @@ jobs:
       - name: Lint and test
         run: |
           eval "$(luarocks --lua-version 5.1 path)"
+          export LUA_INIT="bit = require('bit')"
           make check
