@@ -39,6 +39,7 @@ ns.Data.instances = { ... }
 | `unlockDate` | string \| nil | ISO date when known, e.g. `"2026-12-09"` |
 | `uiMapIDs` | number[] | From upstream `maps`, for runtime instance detection |
 | `zoneTextAreaID` | number \| nil | From upstream, for runtime instance detection |
+| `zoneTextAreaIDs` | number[] \| nil | Optional. Every area ID when upstream lists more than one (Dire Maul, Sunken Temple). `zoneTextAreaID` is the first |
 | `encounters` | number[] | Encounter IDs in upstream order |
 
 ### `ns.Data.encounters[encounterID]`
@@ -71,6 +72,8 @@ One row per item modified-appearance source (`s(sourceID, itemID, ...)` upstream
 | `difficultyID` | number \| nil | nil while Forever has one difficulty |
 | `collectionRule` | `"group"` \| `"recipient"` \| `"unknown"` | `group`: dungeon bind-on-pickup quality 2 or 3. `recipient`: quality 4 or raid drops. `unknown` when quality is nil |
 | `name` | string \| nil | Only filled for items the client may not know (assumed instances) |
+| `npcID` | number \| nil | Optional. For `unresolved` sources that drop from an upstream NPC with no journal encounter, the NPC ID |
+| `alsoFrom` | table[] \| nil | Optional. Other places the same source drops, each `{ instanceID, encounterID, kind }`. The row's own fields are the first place upstream lists it |
 
 ### `ns.Data.tokens[itemID]`
 

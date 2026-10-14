@@ -6,5 +6,10 @@
 ## SavedVariables: AltrobeDB
 
 Core.lua
-Data/ClassProficiency.lua
-Domain/Evaluator.lua
+Data\Generated\Manifest.lua
+Data\Generated\Instances.lua
+Data\Generated\Encounters.lua
+Data\Generated\Sources.lua
+Data\Generated\Tokens.lua
+Data\ClassProficiency.lua
+Domain\Evaluator.lua
