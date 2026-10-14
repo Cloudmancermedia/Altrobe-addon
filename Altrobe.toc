@@ -13,3 +13,9 @@ Data\Generated\Sources.lua
 Data\Generated\Tokens.lua
 Data\ClassProficiency.lua
 Domain\Evaluator.lua
+Services\Profile.lua
+Services\Collection.lua
+Services\InstanceContext.lua
+Services\Lockouts.lua
+Services\Plan.lua
+UI\ChatPlan.lua

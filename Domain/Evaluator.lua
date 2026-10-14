@@ -48,6 +48,20 @@ local function opportunity(missing)
   return RANK_RULE[best]
 end
 
+-- The contract's runtime rule: item facts fill a rule only the data left
+-- unknown, the way the pipeline derives it. A rule from the data stands.
+local BIND_ON_PICKUP = 1
+
+local function collectionRule(source, instanceKind, itemFacts)
+  if source.collectionRule ~= "unknown" then return source.collectionRule end
+  local facts = itemFacts[source.itemID]
+  local quality = facts and facts.quality
+  if quality == nil then return "unknown" end
+  if instanceKind == "raid" or quality >= 4 then return "recipient" end
+  if (quality == 2 or quality == 3) and facts.bindType == BIND_ON_PICKUP then return "group" end
+  return "unknown"
+end
+
 local function newInstanceState(inst)
   local encounterIndex = {}
   for _, encounterID in ipairs(inst.encounters or {}) do encounterIndex[encounterID] = {} end
@@ -64,6 +78,7 @@ function Evaluator.Evaluate(input)
   local ownedSources = collection.ownedSources or {}
   local level = character.level or 0
   local lockouts = input.lockouts or {}
+  local itemFacts = input.itemFacts or {}
   local instanceKinds = profile.instanceKinds or { dungeon = true, raid = true }
 
   local states = {}
@@ -107,7 +122,7 @@ function Evaluator.Evaluate(input)
         if not owned and (not profile.slots or profile.slots[source.slot]) then
           local entry = {
             sourceID = sourceID, itemID = source.itemID, classes = eligible,
-            collectionRule = source.collectionRule, unresolved = unresolved,
+            collectionRule = collectionRule(source, state.inst.kind, itemFacts), unresolved = unresolved,
             levelLocked = source.minLevel ~= nil and level < source.minLevel,
           }
           local list
