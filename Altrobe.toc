@@ -15,3 +15,4 @@ Data\ClassProficiency.lua
 Domain\Evaluator.lua
 Services\Profile.lua
 Services\Collection.lua
+Services\InstanceContext.lua
