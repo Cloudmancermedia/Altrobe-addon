@@ -26,13 +26,73 @@ local function instanceByName(name)
   end
 end
 
+local function words(name)
+  local list = {}
+  for word in name:gmatch("[%w']+") do list[#list + 1] = word end
+  return list
+end
+
+-- True when the shorter name's words appear in a row inside the longer name:
+-- "Cookie" in "Captain Cookie", "Hakkar" in "Hakkar the Soulflayer".
+local function wordsWithin(a, b)
+  local short, long = words(a), words(b)
+  if #short > #long then short, long = long, short end
+  if #short == 0 then return false end
+  for start = 1, #long - #short + 1 do
+    local all = true
+    for i = 1, #short do
+      if long[start + i - 1] ~= short[i] then all = false break end
+    end
+    if all then return true end
+  end
+  return false
+end
+
+local function distance(a, b)
+  local prev = {}
+  for j = 0, #b do prev[j] = j end
+  for i = 1, #a do
+    local cur = { [0] = i }
+    for j = 1, #b do
+      local cost = a:byte(i) == b:byte(j) and 0 or 1
+      cur[j] = math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+    end
+    prev = cur
+  end
+  return prev[#b]
+end
+
+-- Upstream boss names sometimes differ from the client's: "Cookie" for
+-- "Captain Cookie", "Shade of Erankikus" for "Shade of Eranikus". Matching
+-- tries exact names, then whole words, then a misspelling of at most two
+-- letters in names of eight letters or more. A tolerant step counts only
+-- when exactly one boss in the instance fits, so it never marks the wrong one.
+local MIN_TYPO_LENGTH, MAX_TYPOS = 8, 2
+
 local function encounterByName(inst, name)
   local wanted = normalize(name)
   if wanted == "" then return nil end
   local encounters = data().encounters or {}
+  local named = {}
   for _, encounterID in ipairs(inst.encounters or {}) do
     local enc = encounters[encounterID]
-    if enc and enc.name and normalize(enc.name) == wanted then return encounterID end
+    if enc and enc.name then named[#named + 1] = { id = encounterID, name = normalize(enc.name) } end
+  end
+  local tests = {
+    function(candidate) return candidate == wanted end,
+    function(candidate) return wordsWithin(candidate, wanted) end,
+    function(candidate)
+      return #candidate >= MIN_TYPO_LENGTH and #wanted >= MIN_TYPO_LENGTH
+        and distance(candidate, wanted) <= MAX_TYPOS
+    end,
+  }
+  for _, test in ipairs(tests) do
+    local found, count = nil, 0
+    for _, enc in ipairs(named) do
+      if test(enc.name) then found, count = enc.id, count + 1 end
+    end
+    if count == 1 then return found end
+    if count > 1 then return nil end
   end
 end
 
