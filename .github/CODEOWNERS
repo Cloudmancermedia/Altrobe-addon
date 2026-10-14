@@ -1,0 +1,6 @@
+# Pull requests that touch these paths request the maintainer's review. They can change CI,
+# permissions, or the tools that generate the shipped game data.
+
+/.github/        @Cloudmancermedia
+/Makefile        @Cloudmancermedia
+/tools/          @Cloudmancermedia
