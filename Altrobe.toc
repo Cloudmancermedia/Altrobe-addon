@@ -16,3 +16,4 @@ Domain\Evaluator.lua
 Services\Profile.lua
 Services\Collection.lua
 Services\InstanceContext.lua
+Services\Lockouts.lua
