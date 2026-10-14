@@ -54,6 +54,8 @@ ns.Data.instances = { ... }
 
 Upstream models most classic dungeon bosses as an NPC with no journal encounter. Those NPCs become encounters keyed by the negative NPC ID, listed in the instance's `encounters` in upstream order, and their drops are `kind = "boss"` sources with that `encounterID`.
 
+An upstream NPC counts as a boss when it sits at boss level (only wing headers and objects between it and the instance), upstream does not describe it as a rare, and it drops at least one source itself. Rares, NPCs nested in another NPC, and loot shared by a group (Common Boss Drops, The Four Horsemen, Silithid Royalty, Atal'ai Defenders) stay `unresolved`. The full rule is in the header of `tools/normalizer.lua`.
+
 ### `ns.Data.sources[sourceID]`
 
 One row per item modified-appearance source (`s(sourceID, itemID, ...)` upstream). The visual appearance ID is not stored. The runtime resolves it with `C_TransmogCollection.GetItemInfo(itemID)`.

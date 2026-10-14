@@ -1,9 +1,20 @@
 -- Turns loaded All The Things trees into the tables of docs/data-contract.md.
 --
 -- Source kind comes from the nearest classifying ancestor:
---   q() -> quest; e() -> boss; header -63 (Zone Drops) -> trash;
---   header -58 (Vendors) -> vendor; none of these -> unresolved.
--- n() nodes do not classify. An unresolved source under an n() keeps its npcID.
+--   q() -> quest; e() -> boss; an NPC boss (below) -> boss;
+--   header -63 (Zone Drops) -> trash; header -58 (Vendors) -> vendor;
+--   none of these -> unresolved.
+-- Other n() nodes do not classify. An unresolved source under an n() keeps its npcID.
+--
+-- NPC bosses. Upstream lists most classic dungeon bosses as n() with no journal
+-- encounter. Such an n() is a boss, keyed -npcID with journal = false, when:
+--   * it sits at boss level: its ancestors up to the instance are only wing
+--     headers (WING_HEADER) and objects (summoning altars, e.g. Edge of Madness);
+--     so not under Rares (-46), Zone Drops, Vendors, Quests, another n() or an e();
+--   * upstream does not describe it as a rare ("This is a rare ..."), which is
+--     how upstream marks rares it lists beside bosses;
+--   * it drops at least one source itself after the timeline, not only through
+--     a nested n(), e(), q() or header.
 --
 -- Timeline: a subtree is dropped when upstream marks it never implemented or
 -- removed (u=1, u=2), added after the target build (awp > timeline) or removed
@@ -15,6 +26,18 @@ local iteminfo = require("tools.iteminfo")
 local M = {}
 
 local HEADER_KIND = { [-63] = "trash", [-58] = "vendor" }
+
+-- Custom headers that only split an instance into wings or floors. Names from
+-- L.HEADER_NAMES in db/Camelot/LocalizationDB.lua.
+local WING_HEADER = {
+  [-78] = true, [-79] = true, [-80] = true, [-81] = true, [-82] = true, -- Naxxramas quarters
+  [-351] = true, [-352] = true, -- Blackrock Depths: Detention Block, Shadowforge City
+  [-353] = true, [-354] = true, -- Lower and Upper Blackrock Spire
+  [-355] = true, [-356] = true, [-357] = true, -- Dire Maul East, North, West
+  [-359] = true, [-360] = true, -- Maraudon Orange and Purple paths
+  [-361] = true, [-362] = true, [-363] = true, [-364] = true, -- Scarlet Monastery wings
+  [-365] = true, [-366] = true, -- Stratholme Main Gate, Service Entrance
+}
 local FACTION = { [1] = "Horde", [2] = "Alliance" }
 
 local function sortedCopy(list)
@@ -51,6 +74,26 @@ local function excludedByTimeline(fields, timeline)
   if awp and awp > timeline then return true end
   if rwp and rwp <= timeline then return true end
   return false
+end
+
+local function describedAsRare(fields)
+  local d = type(fields.description) == "string" and fields.description:lower() or ""
+  return d:find("this is a rare", 1, true) ~= nil
+end
+
+-- True when the NPC drops a source that the timeline keeps, without counting
+-- drops that belong to a nested NPC, encounter, quest or header.
+local function dropsSources(npc, timeline)
+  local function walk(n)
+    for _, c in ipairs(n.children) do
+      if not excludedByTimeline(c.fields, timeline) then
+        if c.type == "s" then return true end
+        if c.type ~= "n" and c.type ~= "e" and c.type ~= "q" and c.type ~= "h" and walk(c) then return true end
+      end
+    end
+    return false
+  end
+  return walk(npc)
 end
 
 function M.collectionRule(source, instanceKind, bop)
@@ -172,7 +215,7 @@ function M.normalize(opts)
         instanceID = rel.instanceID,
         encounterID = rel.encounterID,
         kind = rel.kind,
-        npcID = rel.kind == "unresolved" and ctx.npcID or nil,
+        npcID = (rel.kind == "unresolved" or ctx.npcBoss) and ctx.npcID or nil,
         quality = quality,
         slot = described.slot,
         itemClass = described.itemClass,
@@ -206,18 +249,27 @@ function M.normalize(opts)
         return
       end
 
-      local c = { kind = ctx.kind, encounterID = ctx.encounterID, npcID = ctx.npcID, r = ctx.r }
+      local c = { kind = ctx.kind, encounterID = ctx.encounterID, npcID = ctx.npcID, npcBoss = ctx.npcBoss, r = ctx.r }
+      -- Boss level: nothing but wing headers and objects between here and the instance.
+      c.bossLevel = ctx.bossLevel and ((n.type == "h" and WING_HEADER[n.id]) or n.type == "o")
       if type(n.fields.r) == "number" then c.r = n.fields.r end
       if n.type == "e" then
-        c.kind, c.encounterID = "boss", n.id
+        c.kind, c.encounterID, c.npcBoss = "boss", n.id, nil
         if not out.encounters[n.id] then
-          out.encounters[n.id] = { id = n.id, instanceID = node.id, npcID = n.fields.npcID }
+          out.encounters[n.id] = { id = n.id, instanceID = node.id, npcID = n.fields.npcID, journal = true }
           inst.encounters[#inst.encounters + 1] = n.id
         end
+      elseif n.type == "n" and ctx.bossLevel and not describedAsRare(n.fields) and dropsSources(n, timeline)
+        and (out.encounters[-n.id] == nil or out.encounters[-n.id].instanceID == node.id) then
+        c.kind, c.encounterID, c.npcID, c.npcBoss = "boss", -n.id, n.id, true
+        if not out.encounters[-n.id] then
+          out.encounters[-n.id] = { id = -n.id, instanceID = node.id, npcID = n.id, journal = false }
+          inst.encounters[#inst.encounters + 1] = -n.id
+        end
       elseif n.type == "q" then
-        c.kind, c.encounterID = "quest", nil
+        c.kind, c.encounterID, c.npcBoss = "quest", nil, nil
       elseif n.type == "h" and HEADER_KIND[n.id] then
-        c.kind, c.encounterID = HEADER_KIND[n.id], nil
+        c.kind, c.encounterID, c.npcBoss = HEADER_KIND[n.id], nil, nil
       elseif n.type == "n" then
         c.npcID = n.id
       end
@@ -226,7 +278,7 @@ function M.normalize(opts)
       for _, child in ipairs(n.children) do walk(child, c) end
     end
 
-    for _, child in ipairs(node.children) do walk(child, {}) end
+    for _, child in ipairs(node.children) do walk(child, { bossLevel = true }) end
   end
 
   table.sort(stats.duplicateSources)

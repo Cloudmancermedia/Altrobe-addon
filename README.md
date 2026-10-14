@@ -33,7 +33,7 @@ luarocks --lua-version=5.1 --local install luacheck
 |---|---|
 | `tools/loader.lua` | Loads an upstream category file into a node tree |
 | `tools/iteminfo.lua` | Quality, slot and type from the Forever client tables (Wago CSVs, harvested ItemDB) |
-| `tools/normalizer.lua` | Builds instances, encounters and sources; classifies sources; applies the timeline |
+| `tools/normalizer.lua` | Builds instances, encounters and sources; classifies sources, including NPC-only bosses; applies the timeline |
 | `tools/availability.lua` | Hand-maintained availability per instance, with provenance |
 | `tools/validator.lua` | Referential integrity and enum checks; the build writes nothing if they fail |
 | `tools/emitter.lua` | Deterministic Lua output |
