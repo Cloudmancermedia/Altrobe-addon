@@ -2,7 +2,8 @@
 -- Usage (from the repo root): luajit tools/build_data.lua /path/to/AllTheThings
 --
 -- Reads db/Camelot (Forever), db/Vanilla (Classic Era, for instances Camelot
--- lacks) and the Forever client tables under .contrib/. Upstream files are
+-- lacks), the Forever client tables under .contrib/ and, for boss names, the
+-- comments in upstream's source files (tools/names.lua). Upstream files are
 -- data: they load in the sandbox in tools/loader.lua and nothing upstream is
 -- executed otherwise. Writes nothing unless the data validates.
 local scriptDir = (arg and arg[0] or ""):match("^(.*)/tools/[^/]*$")
@@ -10,13 +11,14 @@ if scriptDir then package.path = scriptDir .. "/?.lua;" .. package.path end
 
 local loader = require("tools.loader")
 local iteminfo = require("tools.iteminfo")
+local names = require("tools.names")
 local normalizer = require("tools.normalizer")
 local validator = require("tools.validator")
 local emitter = require("tools.emitter")
 
 local M = {}
 
-M.VERSION = "1.0.0"
+M.VERSION = "1.1.0"
 M.UPSTREAM = "ATTWoWAddon/AllTheThings"
 M.PINNED_COMMIT = "cb48940f5c6681970053a2baf28bbbae4d0bd225"
 M.GAME_BUILD = "1.60.1.70338"
@@ -64,6 +66,7 @@ function M.run(opts)
     camelot = camelot.Instances,
     vanilla = vanilla.Instances,
     items = iteminfo.load(root, M.GAME_BUILD),
+    names = names.load(root, M.GAME_BUILD),
     availability = opts.availability or require("tools.availability"),
     timeline = M.TIMELINE,
   })
@@ -115,6 +118,7 @@ local function main(args)
   print(string.format("excluded by timeline %d, outside any instance %d, duplicated sources %d, "
     .. "quality conflicts %d, source/item mismatches vs client %d", s.excludedByTimeline, s.outsideInstance,
     #s.duplicateSources, s.qualityConflict, #s.appearanceMismatch))
+  print(string.format("encounters without a name %d", s.unnamedEncounters))
   local ids = {}
   for id in pairs(s.byInstance) do ids[#ids + 1] = id end
   table.sort(ids)

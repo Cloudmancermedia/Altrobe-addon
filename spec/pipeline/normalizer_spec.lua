@@ -1,6 +1,7 @@
 local loader = require("tools.loader")
 local iteminfo = require("tools.iteminfo")
 local normalizer = require("tools.normalizer")
+local names = require("tools.names")
 
 local ROOT = "spec/pipeline/fixtures/att"
 
@@ -17,6 +18,7 @@ local function build(availability)
     camelot = loader.loadFile(ROOT .. "/db/Camelot/Categories/Instances.lua").Instances,
     vanilla = loader.loadFile(ROOT .. "/db/Vanilla/Categories/Instances.lua").Instances,
     items = iteminfo.load(ROOT, "1.60.1.70338"),
+    names = names.load(ROOT, "1.60.1.70338"),
     availability = availability or AVAILABILITY,
     timeline = 16001,
   })
@@ -48,9 +50,35 @@ describe("normalizer", function()
       assert.are.equal("vendor", data.sources[106].kind)
     end)
 
-    it("leaves a drop from an NPC without an encounter unresolved and keeps the NPC", function()
-      assert.are.equal("unresolved", data.sources[105].kind)
-      assert.are.equal(4887, data.sources[105].npcID)
+    it("calls a drop from an NPC boss without a journal encounter a boss drop keyed by the negative NPC ID", function()
+      local src = data.sources[105]
+      assert.are.equal("boss", src.kind)
+      assert.are.equal(-4887, src.encounterID)
+      assert.are.equal(4887, src.npcID)
+    end)
+
+    it("finds NPC bosses inside a wing header and behind a summoning object", function()
+      assert.are.equal(-5003, data.sources[113].encounterID)
+      assert.are.equal(-5004, data.sources[114].encounterID)
+    end)
+
+    it("leaves drops from rares unresolved and keeps the NPC", function()
+      -- Under the Rares header (-46), and an NPC upstream describes as a rare.
+      assert.are.equal("unresolved", data.sources[111].kind)
+      assert.are.equal(5001, data.sources[111].npcID)
+      assert.are.equal("unresolved", data.sources[112].kind)
+      assert.are.equal(5002, data.sources[112].npcID)
+    end)
+
+    it("leaves a drop from an NPC nested in another NPC unresolved", function()
+      assert.are.equal("unresolved", data.sources[115].kind)
+      assert.are.equal(5006, data.sources[115].npcID)
+      assert.is_nil(data.encounters[-5005])
+      assert.is_nil(data.encounters[-5006])
+    end)
+
+    it("makes no encounter for an NPC whose drops the timeline removes", function()
+      assert.is_nil(data.encounters[-5007])
     end)
 
     it("ignores items that have no appearance source and sources outside any instance", function()
@@ -64,7 +92,7 @@ describe("normalizer", function()
       assert.is_nil(data.sources[107])
       assert.is_nil(data.sources[108])
       assert.is_nil(data.sources[109])
-      assert.are.equal(3, data.stats.excludedByTimeline)
+      assert.are.equal(4, data.stats.excludedByTimeline)
     end)
 
     it("keeps a source removed in a later patch and re-added after that", function()
@@ -138,7 +166,7 @@ describe("normalizer", function()
       assert.are.equal("City of Dalaran", inst.name)
       assert.are.equal("dungeon", inst.kind)
       assert.are.equal(16544, inst.zoneTextAreaID)
-      assert.are.same({ 3310, 3311, 3312, 3313 }, inst.encounters)
+      assert.are.same({ 3310, 3311, -4887, 3312, 3313, -5003, -5004 }, inst.encounters)
       assert.are.same({}, inst.uiMapIDs)
     end)
 
@@ -156,7 +184,30 @@ describe("normalizer", function()
     end)
 
     it("records encounters with their instance and NPC", function()
-      assert.are.same({ id = 3311, instanceID = 2959, npcID = 247126 }, data.encounters[3311])
+      assert.are.same({ id = 3311, instanceID = 2959, npcID = 247126, journal = true, name = "Archmage Test" },
+        data.encounters[3311])
+    end)
+
+    it("records an NPC boss as an encounter outside the journal", function()
+      assert.are.same({ id = -4887, instanceID = 2959, npcID = 4887, journal = false, name = "Ghamoo-ra" },
+        data.encounters[-4887])
+    end)
+
+    it("names NPC bosses from the NPC name and leaves unknown names nil", function()
+      assert.are.equal("Wing Boss", data.encounters[-5003].name)
+      assert.are.equal("Summoned Boss", data.encounters[-5004].name)
+      assert.is_nil(data.encounters[3310].name)
+      assert.is_nil(data.encounters[3312].name)
+    end)
+
+    it("settles a name with alternatives from the client's kill criteria", function()
+      assert.are.equal("Onyxia", data.encounters[1084].name)
+      assert.is_nil(data.encounters[1529].name)
+    end)
+
+    it("counts encounters left without a name", function()
+      -- 3310, 3312 (two names upstream), 1529 (alternatives) and Vanilla's 1519.
+      assert.are.equal(4, data.stats.unnamedEncounters)
     end)
   end)
 

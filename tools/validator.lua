@@ -61,6 +61,14 @@ function M.validate(data)
     if not data.instances[enc.instanceID] then
       fail("%s: instance %s does not exist", where, tostring(enc.instanceID))
     end
+    if type(enc.journal) ~= "boolean" then
+      fail("%s: journal is not a boolean", where)
+    elseif enc.journal and type(key) == "number" and key < 0 then
+      fail("%s: journal encounter with a negative ID", where)
+    elseif not enc.journal and key ~= -(tonumber(enc.npcID) or 0) then
+      fail("%s: not keyed by -npcID", where)
+    end
+    if enc.name ~= nil and type(enc.name) ~= "string" then fail("%s: name is not a string", where) end
   end
 
   local function checkRelationship(where, rel)

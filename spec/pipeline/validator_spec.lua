@@ -5,7 +5,7 @@ local function valid()
     instances = {
       [1] = { id = 1, name = "A", kind = "dungeon", availability = "live", uiMapIDs = {}, encounters = { 10 } },
     },
-    encounters = { [10] = { id = 10, instanceID = 1 } },
+    encounters = { [10] = { id = 10, instanceID = 1, journal = true } },
     sources = {
       [100] = {
         id = 100, itemID = 5, instanceID = 1, encounterID = 10, kind = "boss", quality = 3,
@@ -66,6 +66,23 @@ describe("validator", function()
     expectError(function(d) d.instances[1].kind = "scenario" end, "kind \"scenario\"")
     expectError(function(d) d.instances[1].unlockDate = "Dec 9" end, "unlockDate \"Dec 9\"")
     expectError(function(d) d.instanceSources[1] = "retail" end, "instanceSources%[1%] \"retail\"")
+  end)
+
+  it("rejects an encounter without a journal flag", function()
+    expectError(function(d) d.encounters[10].journal = nil end, "encounter 10: journal is not a boolean")
+  end)
+
+  it("rejects an NPC boss whose key is not its negative NPC ID", function()
+    expectError(function(d)
+      d.encounters[-7] = { id = -7, instanceID = 1, npcID = 8, journal = false }
+    end, "encounter %-7: not keyed by %-npcID")
+    expectError(function(d)
+      d.encounters[-7] = { id = -7, instanceID = 1, npcID = 7, journal = true }
+    end, "encounter %-7: journal encounter with a negative ID")
+  end)
+
+  it("rejects a non-string encounter name", function()
+    expectError(function(d) d.encounters[10].name = 5 end, "encounter 10: name is not a string")
   end)
 
   it("rejects a subtype that does not fit the item class", function()

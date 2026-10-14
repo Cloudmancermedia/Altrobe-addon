@@ -48,11 +48,13 @@ ns.Data.instances = { ... }
 |---|---|---|
 | `id` | number | Journal encounter ID, or `-npcID` for a boss upstream records only as an NPC |
 | `instanceID` | number | Owning instance |
-| `name` | string \| nil | Boss name from the best pinned upstream source. Used for display and to match lockouts, which the client reports by name |
+| `name` | string \| nil | Boss name from the best pinned upstream source. Used for display and to match lockouts, which the client reports by name. English. The pinned checkout has no journal encounter or creature table, so names come from the comments in upstream's source files (`tools/names.lua`); nil when upstream gives none or gives alternatives the client does not settle |
 | `npcID` | number \| nil | |
 | `journal` | boolean | false for `-npcID` bosses |
 
 Upstream models most classic dungeon bosses as an NPC with no journal encounter. Those NPCs become encounters keyed by the negative NPC ID, listed in the instance's `encounters` in upstream order, and their drops are `kind = "boss"` sources with that `encounterID`.
+
+An upstream NPC counts as a boss when it sits at boss level (only wing headers and objects between it and the instance), upstream does not describe it as a rare, and it drops at least one source itself. Rares, NPCs nested in another NPC, and loot shared by a group (Common Boss Drops, The Four Horsemen, Silithid Royalty, Atal'ai Defenders) stay `unresolved`. The full rule is in the header of `tools/normalizer.lua`.
 
 ### `ns.Data.sources[sourceID]`
 
