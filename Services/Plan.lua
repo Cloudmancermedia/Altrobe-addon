@@ -38,6 +38,7 @@ function Plan.Inputs()
     profile = ns.Profile.Get(),
     collection = ns.Collection.Get(),
     itemFacts = ns.Collection.ItemFacts(),
+    absentItems = ns.Collection.AbsentItems(),
     character = ns.Profile.Character(),
     instanceContext = ns.InstanceContext.Current(),
     lockouts = ns.Lockouts.Get(),

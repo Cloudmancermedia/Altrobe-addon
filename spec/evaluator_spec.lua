@@ -44,6 +44,7 @@ describe("Evaluator", function()
       },
       character = opts.character or { classFile = "PRIEST", level = 60, faction = "Horde" },
       itemFacts = opts.itemFacts,
+      absentItems = opts.absentItems,
       instanceContext = opts.instanceContext,
       lockouts = opts.lockouts or {},
     })
@@ -209,6 +210,27 @@ describe("Evaluator", function()
       data.sources[5001].itemSubType = nil
       local out = evaluate({ ownedVisuals = { [900] = true } })
       assert.is_nil(entry(encounter(out, 100, 1001).missing, 5001))
+    end)
+  end)
+
+  describe("items not in the client", function()
+    it("leaves an absent item out of a live instance and counts it", function()
+      local out = evaluate({ absentItems = { [15001] = true } })
+      assert.is_nil(entry(encounter(out, 100, 1001).missing, 5001))
+      assert.are.equal(1, instance(out, 100).notInClient)
+      assert.are.same({ owned = 0, total = 5 }, instance(out, 100).progress.PRIEST)
+    end)
+
+    it("keeps absent items in an assumed instance", function()
+      local out = evaluate()
+      local before = instance(out, 300).progress.PRIEST.total
+      local absent = {}
+      for _, s in pairs(data.sources) do
+        if s.instanceID == 300 then absent[s.itemID] = true end
+      end
+      out = evaluate({ absentItems = absent })
+      assert.are.equal(before, instance(out, 300).progress.PRIEST.total)
+      assert.are.equal(0, instance(out, 300).notInClient)
     end)
   end)
 

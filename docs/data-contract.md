@@ -105,6 +105,7 @@ ns.Evaluator.Evaluate({
     ownedSources = { [sourceID] = true },
   },
   itemFacts = { [itemID] = { quality = 3, bindType = 1 } },  -- from C_Item.GetItemInfo; may be partial
+  absentItems = { [itemID] = true },  -- items the client failed to load this session
   character = { classFile = "PRIEST", level = 60, faction = "Horde" },
   instanceContext = nil,                    -- or { instanceID = n }
   lockouts = { [instanceID] = { killed = { [encounterID] = true } } },
@@ -135,6 +136,7 @@ Ownership is decided first. In appearance mode a source is owned when its visual
       },
       trash = { missing = { ... } },
       other = { missing = { ... } },    -- sources not tied to a listed boss or to trash
+      notInClient = n,                  -- in-scope sources left out because their item is in absentItems
     },
   },
   current = n | nil,                    -- instanceID from instanceContext when it is a known, non-assumed instance
@@ -149,6 +151,7 @@ Ownership is decided first. In appearance mode a source is owned when its visual
 - **Missing entries.** Each missing source appears once. `classes` lists the eligible profile classes in profile order. `levelLocked` is true when `character.level < minLevel`; the entry stays listed.
 - **Placement.** `kind = "boss"` with an `encounterID` the instance lists goes under that encounter. `"trash"` goes in `trash`. Everything else in scope goes in `other`: `"unresolved"`, `"token"` (tokens are an open question), and boss drops whose encounter is nil or not in the instance's `encounters`. `"quest"` and `"vendor"` sources are ignored in the first release.
 - **Runtime rule.** When a source's `collectionRule` is `"unknown"` and `itemFacts[itemID]` has a quality, the evaluator derives the rule the way the pipeline does: `"recipient"` for quality 4 or any raid source, `"group"` for a dungeon source of quality 2 or 3 with `bindType` 1 (bind on pickup), otherwise `"unknown"`. A rule from the data is never overridden.
+- **Not in the client.** In a live or announced instance, a source whose item is in `absentItems` is left out of every list and of progress, and counted in `notInClient`. Assumed instances keep such sources, since their items are expected to be absent until the content ships.
 - **Opportunity.** `"sure"` if any listed missing source has rule `"group"`, else `"roll"` for `"recipient"`, else `"unknown"`, else nil. A nil rule counts as `"unknown"`.
 - **Progress.** Per profile class, over every eligible source in the instance (bosses, trash and `other`). Appearance mode counts distinct visuals; exact mode counts sources; a source with no known visual counts as one unit by source ID. One class's progress never depends on which other classes are selected.
 - **Filters.** `profile.instances` removes instances from the output. `profile.slots` limits listed missing entries, so it also drives `relevant` and `opportunity`, but it does not change `progress`. `profile.instanceKinds` only sets `active`; nil means every kind. `active` is false for assumed instances, which are still listed.

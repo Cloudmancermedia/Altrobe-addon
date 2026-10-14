@@ -65,7 +65,7 @@ end
 local function newInstanceState(inst)
   local encounterIndex = {}
   for _, encounterID in ipairs(inst.encounters or {}) do encounterIndex[encounterID] = {} end
-  return { inst = inst, encounterMissing = encounterIndex, trash = {}, other = {}, units = {} }
+  return { inst = inst, encounterMissing = encounterIndex, trash = {}, other = {}, units = {}, notInClient = 0 }
 end
 
 function Evaluator.Evaluate(input)
@@ -79,6 +79,7 @@ function Evaluator.Evaluate(input)
   local level = character.level or 0
   local lockouts = input.lockouts or {}
   local itemFacts = input.itemFacts or {}
+  local absentItems = input.absentItems or {}
   local instanceKinds = profile.instanceKinds or { dungeon = true, raid = true }
 
   local states = {}
@@ -90,6 +91,13 @@ function Evaluator.Evaluate(input)
 
   for sourceID, source in pairs(data.sources or {}) do
     local state = states[source.instanceID]
+    -- An item the client cannot load is not farmable in a live instance;
+    -- it is counted, not listed. Assumed instances keep theirs.
+    if state and absentItems[source.itemID] and state.inst.availability ~= "assumed"
+      and not IGNORED_KINDS[source.kind] then
+      state.notInClient = state.notInClient + 1
+      state = nil
+    end
     if state and not IGNORED_KINDS[source.kind]
       and (source.faction == nil or source.faction == character.faction) then
       local eligible, undecided = eligibleClasses(source, classes, proficiency)
@@ -184,6 +192,7 @@ function Evaluator.Evaluate(input)
       encounters = encounters,
       trash = { missing = state.trash },
       other = { missing = state.other },
+      notInClient = state.notInClient,
     }
   end
 
