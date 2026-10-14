@@ -18,7 +18,7 @@ local emitter = require("tools.emitter")
 
 local M = {}
 
-M.VERSION = "1.0.0"
+M.VERSION = "1.1.0"
 M.UPSTREAM = "ATTWoWAddon/AllTheThings"
 M.PINNED_COMMIT = "cb48940f5c6681970053a2baf28bbbae4d0bd225"
 M.GAME_BUILD = "1.60.1.70338"
