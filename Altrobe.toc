@@ -14,3 +14,4 @@ Data\Generated\Tokens.lua
 Data\ClassProficiency.lua
 Domain\Evaluator.lua
 Services\Profile.lua
+Services\Collection.lua
