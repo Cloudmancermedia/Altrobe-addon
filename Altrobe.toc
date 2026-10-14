@@ -18,3 +18,4 @@ Services\Collection.lua
 Services\InstanceContext.lua
 Services\Lockouts.lua
 Services\Plan.lua
+UI\ChatPlan.lua
