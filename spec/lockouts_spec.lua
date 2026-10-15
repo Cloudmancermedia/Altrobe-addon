@@ -41,6 +41,40 @@ describe("Lockouts", function()
     assert.are.same({}, ns.Lockouts.Get())
   end)
 
+  describe("names that differ from the client's", function()
+    before_each(function()
+      ns.Data.instances[300] = { id = 300, name = "Sunken Temple", encounters = { 3001, 3002, 3003, 3004, 3005 } }
+      ns.Data.encounters[3001] = { id = 3001, instanceID = 300, name = "Cookie" }
+      ns.Data.encounters[3002] = { id = 3002, instanceID = 300, name = "Hakkar the Soulflayer" }
+      ns.Data.encounters[3003] = { id = 3003, instanceID = 300, name = "Shade of Erankikus" }
+      ns.Data.encounters[3004] = { id = 3004, instanceID = 300, name = "Guard Fengus" }
+      ns.Data.encounters[3005] = { id = 3005, instanceID = 300, name = "Guard Slip'kik" }
+    end)
+
+    local function killedFor(clientName)
+      env.saved = { { name = "Sunken Temple", locked = true, encounters = { { name = clientName, killed = true } } } }
+      local out = ns.Lockouts.Get()
+      return out[300] and out[300].killed or {}
+    end
+
+    it("matches when one name holds the other's words", function()
+      assert.are.same({ [3001] = true }, killedFor("Captain Cookie"))
+      assert.are.same({ [3002] = true }, killedFor("Hakkar"))
+    end)
+
+    it("matches a small misspelling", function()
+      assert.are.same({ [3003] = true }, killedFor("Shade of Eranikus"))
+    end)
+
+    it("matches nothing when the tolerant match is ambiguous", function()
+      assert.are.same({}, killedFor("Guard"))
+    end)
+
+    it("does not match short names by spelling", function()
+      assert.are.same({}, killedFor("Cookee"))
+    end)
+  end)
+
   it("never matches a boss whose name the data does not have", function()
     env.saved = { { name = "Fixture Keep", locked = true, encounters = { { name = "", killed = true } } } }
     assert.are.same({}, ns.Lockouts.Get())
