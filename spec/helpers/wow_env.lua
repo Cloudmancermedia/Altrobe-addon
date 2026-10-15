@@ -36,6 +36,8 @@ function M.reset()
 
   M.inCombat = false
   _G.InCombatLockdown = function() return M.inCombat end
+  M.now = 0
+  _G.GetTime = function() return M.now end
 
   M.player = { className = "Priest", classFile = "PRIEST", classID = 5, level = 60, faction = "Horde" }
   _G.UnitClass = function() return M.player.className, M.player.classFile, M.player.classID end
