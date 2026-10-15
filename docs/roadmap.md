@@ -18,12 +18,12 @@ Dungeons ship first because they are the only instanced loot at launch.
 ## Where things stand
 
 - **Phase 1, beta spike: done.** The client exposes the retail transmog APIs, our source IDs match the client's, the Encounter Journal is empty, and the model preview works. Three answers still need a group dungeon run (see QA).
-- **Phase 2, foundation: mostly done.** Merged in PR #1: the data pipeline, the evaluator, the runtime services, and `/altrobe plan`. PR #3 leaves items the beta client does not have out of live plans and adds `/altrobe items`. PR #4 matches lockout boss names that differ from the client's. Tested in the beta: boss names, sure and roll marks, item links, multi-class, and instance detection all work.
+- **Phase 2, foundation: mostly done.** Merged in PR #1: the data pipeline, the evaluator, the runtime services, and `/altrobe plan`. PR #3 leaves items the beta client does not have out of live plans and adds `/altrobe items`. PR #4 matches lockout boss names that differ from the client's. `/altrobe runlog` records what the group dungeon run in QA needs. Tested in the beta: boss names, sure and roll marks, item links, multi-class, and instance detection all work.
 
 ## Next up, in order
 
-1. Add a group-collection logger and an in-combat probe under `Dev/`. The deleted spike addon did both; the dungeon run in QA needs them.
-2. Start Phase 3 with the in-instance window.
+1. Start Phase 3 with the in-instance window.
+2. Do the group dungeon run in QA and fold its answers into `docs/spec.md` and the code comments marked untested.
 
 ## Development backlog
 
@@ -64,7 +64,7 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 - **#3 check.** `/reload`, then run `/altrobe plan blackrock depths` twice about 10 seconds apart. The second run should list fewer bosses and end with "items not in the client yet".
 - **Fenrus check.** `/altrobe plan shadowfang` after a few seconds: Fenrus the Devourer should show sure or roll, not unknown.
-- **Group dungeon run** (needs item 1 in "Next up"):
+- **Group dungeon run.** `/altrobe runlog start` before the first pull, `/altrobe runlog stop` and `/reload` after the last boss. The answers are in `AltrobeDB.debug.runlog`:
   - Group collection: does a green or blue won by another player teach its appearance to everyone eligible?
   - Combat: do the transmog APIs return plain values during combat lockdown?
   - Lockouts: do saved-instance fields read as expected, and does #4 mark the right bosses killed?

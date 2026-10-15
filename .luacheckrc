@@ -9,7 +9,7 @@ globals = {
 read_globals = {
   "CreateFrame", "C_TransmogCollection", "C_Item", "C_Map", "GetInstanceInfo", "GetSavedInstanceInfo",
   "GetNumSavedInstances", "GetSavedInstanceEncounterInfo", "UnitClass", "UnitLevel", "UnitFactionGroup",
-  "C_Timer", "InCombatLockdown", "RequestRaidInfo",
+  "C_Timer", "InCombatLockdown", "RequestRaidInfo", "GetTime", "issecretvalue",
 }
 
 files["spec/"] = {

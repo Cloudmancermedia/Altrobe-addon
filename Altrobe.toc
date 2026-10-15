@@ -20,3 +20,4 @@ Services\Lockouts.lua
 Services\Plan.lua
 UI\ChatPlan.lua
 Dev\ItemProbe.lua
+Dev\RunLog.lua
