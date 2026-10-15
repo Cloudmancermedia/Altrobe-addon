@@ -34,7 +34,7 @@ luarocks --lua-version=5.1 --local install luacheck
 | `make data ATT=/path/to/AllTheThings` | Regenerate `Data/Generated/` from an All The Things checkout |
 | `make link ADDONS=/path/to/Interface/AddOns` | Symlink this checkout into the game |
 
-`docs/data-contract.md` defines the generated data and the evaluator's inputs and outputs. Files in `Data/Generated/` are never edited by hand.
+`docs/spec.md` describes what the addon does, `docs/roadmap.md` tracks what is done and what is next, and `docs/data-contract.md` defines the generated data and the evaluator's inputs and outputs. Files in `Data/Generated/` are never edited by hand.
 
 ### Runtime
 
