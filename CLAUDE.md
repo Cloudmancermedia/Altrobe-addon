@@ -28,4 +28,4 @@ A World of Warcraft: Forever addon (Lua 5.1, TOC Interface 16001) that shows whi
 - Install: `/Applications/World of Warcraft/_classic_beta_/`. The `Interface/AddOns/Altrobe` folder is a symlink to a checkout; point it at the branch under test, and back at `main` afterwards.
 - The game client flips file modes in the linked folder, so this repo sets `core.fileMode false`. Set it in each new worktree too.
 - Saved variables land in `WTF/Account/<ACCOUNT>/SavedVariables/Altrobe.lua` after `/reload` or logout. `/altrobe items <instance>` and `/altrobe runlog start|stop` write their diagnostics there under `AltrobeDB.debug`.
-- In-game commands: `/altrobe plan [instance]`, `/altrobe class <classes>`, `/altrobe mode appearance|exact`, `/altrobe items <instance>`, `/altrobe runlog start|stop`.
+- In-game commands: `/altrobe plan [instance]`, `/altrobe class <classes>`, `/altrobe mode appearance|exact`, `/altrobe window [instance|auto on|off]`, `/altrobe items <instance>`, `/altrobe runlog start|stop`.

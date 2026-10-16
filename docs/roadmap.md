@@ -22,8 +22,9 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 ## Next up, in order
 
-1. Start Phase 3 with the in-instance window.
-2. Do the group dungeon run in QA and fold its answers into `docs/spec.md` and the code comments marked untested.
+1. Check the in-instance window in the beta (see QA), then merge `feat/instance-window`.
+2. Continue Phase 3 with the boss tooltips, then the browser.
+3. Do the group dungeon run in QA and fold its answers into `docs/spec.md` and the code comments marked untested.
 
 ## Development backlog
 
@@ -31,12 +32,11 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 - **Group equivalent sources.** Story 22: several items that share one visual should show as one appearance with its sources, not as separate missing items.
 - **Session kills.** Kills from `ENCOUNTER_END` last for the session, so a dungeon reset does not clear them.
-- **Boss numbering.** `/altrobe plan` numbers bosses by their position in the instance, so hidden bosses leave gaps. Decide whether to number 1, 2, 3.
 - **Unnamed bosses.** Five encounters have no name (Atiesh, Fel Steed / Shadow Charger, Princess Moira, Cannon Master Willey, Archivist Galford) and print as `NPC <id>`.
 
 ### Phase 3, dungeon release (target late November)
 
-- **In-instance window.** A frame that opens on entering a dungeon or raid and lists the relevant bosses, replacing chat output as the main view.
+- **In-instance window: built, not yet checked in game.** `UI/InstanceWindow.lua` opens on entering a dungeon or raid with a relevant boss and lists those bosses with their missing items as icons.
 - **Browser.** Filters for instance, class, slot, set and ownership mode.
 - **Tooltips.** Why a boss is relevant: the missing appearances and the classes they count for.
 - **Profiles UI.** Named profiles with saved classes, filters and mode.
@@ -62,6 +62,7 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 ### Open now
 
+- **Instance window.** `/reload`, walk into Shadowfang Keep or another live dungeon. The window should open on its own, list bosses with numbers and icons, show the item tooltip on hover, and remember its place after a drag and `/reload`. Close it, then `/altrobe window` reopens it. Leave the dungeon and it closes. Watch for missing textures on the frame border, close button or scroll bar.
 - **#3 check.** `/reload`, then run `/altrobe plan blackrock depths` twice about 10 seconds apart. The second run should list fewer bosses and end with "items not in the client yet".
 - **Fenrus check.** `/altrobe plan shadowfang` after a few seconds: Fenrus the Devourer should show sure or roll, not unknown.
 - **Group dungeon run.** `/altrobe runlog start` before the first pull, `/altrobe runlog stop` and `/reload` after the last boss. The answers are in `AltrobeDB.debug.runlog`:
@@ -86,6 +87,8 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 ## Decisions on record
 
+- Bosses are numbered by their position in the instance, so hidden bosses leave gaps. The number tells the player how far in a boss is.
+- The instance window opens on its own on entering an instance with a relevant boss, and stays closed for that instance once the player closes it.
 - Forever only; Retail and the other Classic clients are out of scope.
 - Dungeons and raids are in scope. The classic raids are included as assumed content until Blizzard confirms them.
 - The addon is its own repo, using All The Things data with attribution. It does not fork All The Things.
