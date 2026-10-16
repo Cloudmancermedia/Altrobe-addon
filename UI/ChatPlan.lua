@@ -14,8 +14,7 @@ local function coloured(opportunity)
 end
 
 local function bossName(encounterID)
-  local enc = (ns.Data.encounters or {})[encounterID] or {}
-  return enc.name or (enc.npcID and ("NPC " .. enc.npcID)) or ("Boss " .. encounterID)
+  return ns.WindowModel.BossName(ns.Data, encounterID)
 end
 
 local function findInstance(plan, instanceID)
