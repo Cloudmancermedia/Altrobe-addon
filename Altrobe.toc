@@ -20,5 +20,6 @@ Services\Lockouts.lua
 Services\Plan.lua
 UI\WindowModel.lua
 UI\ChatPlan.lua
+UI\InstanceWindow.lua
 Dev\ItemProbe.lua
 Dev\RunLog.lua
