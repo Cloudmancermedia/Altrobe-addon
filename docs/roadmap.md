@@ -22,7 +22,7 @@ Dungeons ship first because they are the only instanced loot at launch.
 
 ## Next up, in order
 
-1. Check the in-instance window in the beta (see QA), then merge `feat/instance-window`.
+1. Check the in-instance window in the beta (see QA).
 2. Continue Phase 3 with the boss tooltips, then the browser.
 3. Do the group dungeon run in QA and fold its answers into `docs/spec.md` and the code comments marked untested.
 
