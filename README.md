@@ -14,6 +14,11 @@ Status: early development. The first playable slice is a chat command.
 | `/altrobe plan <instance name>` | The same for a named instance, from anywhere. Part of the name is enough |
 | `/altrobe class <class ...>` | Collect for these classes, e.g. `/altrobe class priest rogue`. Defaults to your class |
 | `/altrobe mode appearance\|exact` | Count an appearance as owned through any item (default), or only the exact item |
+| `/altrobe window` | Toggle the boss window for the current instance |
+| `/altrobe window <instance name>` | Open the boss window for a named instance, from anywhere |
+| `/altrobe window auto on\|off` | Whether the window opens on entering an instance (default on) |
+
+The boss window opens on its own when you enter a dungeon or raid with a boss that drops something you're missing, and closes when you leave. Close it and it stays closed until your next instance. Drag it to move it; hover an icon for the item.
 
 Each boss shows its opportunity: green `sure` (a group drop, everyone gets it), gold `roll` (one recipient), grey `unknown` (the drop rule is not known yet). `?` marks an item with incomplete data and `*` one above your level.
 
@@ -38,7 +43,7 @@ luarocks --lua-version=5.1 --local install luacheck
 
 ### Runtime
 
-The evaluator (`Domain/Evaluator.lua`) is pure. Services build its inputs from the client and `UI/ChatPlan.lua` prints the result.
+The evaluator (`Domain/Evaluator.lua`) is pure. Services build its inputs from the client, `UI/WindowModel.lua` turns one instance's plan into rows, and `UI/InstanceWindow.lua` and `UI/ChatPlan.lua` show it.
 
 | Module | Job |
 |---|---|
@@ -47,6 +52,9 @@ The evaluator (`Domain/Evaluator.lua`) is pure. Services build its inputs from t
 | `Services/InstanceContext.lua` | The player's instance by map ID, falling back to the zone name |
 | `Services/Lockouts.lua` | Killed bosses from saved instances (matched by name) and from `ENCOUNTER_END` |
 | `Services/Plan.lua` | Assembles inputs, evaluates, caches, and re-evaluates out of combat |
+| `UI/WindowModel.lua` | One instance's plan as a title, per-class progress, numbered bosses with their items, and counts |
+| `UI/InstanceWindow.lua` | The boss window: opening on entry, closing on exit, the `window` command, saved position |
+| `UI/ChatPlan.lua` | The `plan` command's chat output |
 
 ### Data pipeline
 

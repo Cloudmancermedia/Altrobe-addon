@@ -14,8 +14,7 @@ local function coloured(opportunity)
 end
 
 local function bossName(encounterID)
-  local enc = (ns.Data.encounters or {})[encounterID] or {}
-  return enc.name or (enc.npcID and ("NPC " .. enc.npcID)) or ("Boss " .. encounterID)
+  return ns.WindowModel.BossName(ns.Data, encounterID)
 end
 
 local function findInstance(plan, instanceID)
@@ -89,20 +88,6 @@ local function printInstance(plan, instanceID)
   end
 end
 
-local MAX_CANDIDATES = 5
-
-local function names(instanceIDs)
-  local list = {}
-  for i, id in ipairs(instanceIDs) do
-    if i > MAX_CANDIDATES then
-      list[#list + 1] = "..."
-      break
-    end
-    list[#list + 1] = ns.Data.instances[id].name
-  end
-  return table.concat(list, ", ")
-end
-
 local function show(query)
   if InCombatLockdown() then
     waitingQuery = query
@@ -123,7 +108,7 @@ local function show(query)
       ns.Print(("No instance matches %q."):format(query))
       return
     elseif #found > 1 then
-      ns.Print("Which one? " .. names(found))
+      ns.Print("Which one? " .. ns.InstanceContext.Names(found))
       return
     end
     instanceID = found[1]

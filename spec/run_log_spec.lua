@@ -4,7 +4,7 @@ local dungeonFixture = require("spec.fixtures.dungeon")
 local FILES = {
   "Core.lua", "Data/ClassProficiency.lua", "Domain/Evaluator.lua", "Services/Profile.lua",
   "Services/Collection.lua", "Services/InstanceContext.lua", "Services/Lockouts.lua", "Services/Plan.lua",
-  "UI/ChatPlan.lua", "Dev/ItemProbe.lua", "Dev/RunLog.lua",
+  "UI/WindowModel.lua", "UI/ChatPlan.lua", "Dev/ItemProbe.lua", "Dev/RunLog.lua",
 }
 
 describe("/altrobe runlog", function()

@@ -59,3 +59,18 @@ function InstanceContext.Find(query)
   table.sort(found)
   return found
 end
+
+local MAX_CANDIDATES = 5
+
+-- The names of matched instances for a "which one?" reply, cut at five.
+function InstanceContext.Names(instanceIDs)
+  local list = {}
+  for i, id in ipairs(instanceIDs) do
+    if i > MAX_CANDIDATES then
+      list[#list + 1] = "..."
+      break
+    end
+    list[#list + 1] = instances()[id].name
+  end
+  return table.concat(list, ", ")
+end
