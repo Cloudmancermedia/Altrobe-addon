@@ -5,7 +5,7 @@ local raidFixture = require("spec.fixtures.raid")
 local FILES = {
   "Core.lua", "Data/ClassProficiency.lua", "Domain/Evaluator.lua", "Services/Profile.lua",
   "Services/Collection.lua", "Services/InstanceContext.lua", "Services/Lockouts.lua", "Services/Plan.lua",
-  "UI/ChatPlan.lua",
+  "UI/WindowModel.lua", "UI/ChatPlan.lua",
 }
 
 describe("/altrobe plan", function()
